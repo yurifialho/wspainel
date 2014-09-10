@@ -1,0 +1,81 @@
+<html>
+<head>
+<meta name="description" content="HTML5 WebSocket Chat" />
+<meta name="keywords" content="HTML5,WebSocket,JavaScript" />
+<meta name="author" content="Andy Moncsek" />
+<meta charset="UTF-8" />
+<title>Jetty WebSocket: Chat</title>
+<script type="text/javascript" charset="utf-8" src="js/jquery-1.3.2.js"></script>
+<link type="text/css" rel="stylesheet" href="css/style.css" />
+<script type="text/javascript">
+	var ws;
+
+	$(document).ready(
+			function() {
+				
+				$("#canal").change(function(){
+					var canal = $("#canal").val() 
+					ws = new WebSocket("ws://localhost:8080/wspainel/wspainel?chkShop=" + canal);
+
+					ws.onopen = function(event) {
+						writeOnBoard("Conectado ao canal " + $("#canal").val() + " !")										
+					}
+					ws.onmessage = function(event) {
+						alert(JSON.parse(event.data).rechamada);
+						if(event.data.substring(0,1) == 'X'){
+							$('#closebt').val(parseInt(event.data.substring(2,event.data.length)))
+						} else {
+							writeOnBoard(event.data)
+						}
+					}
+					ws.onclose = function(event) {
+						writeOnBoard("Disconectado!");
+					}
+				});
+			});
+
+	function sendMessage() {
+		var message = $('#username').val() + ":" + $('#message').val();
+		ws.send(message);
+		$('#message').val('');
+	}
+
+	function writeOnBoard(msg) {
+		var $textarea = $('#messages');
+		$textarea.val($textarea.val() + msg + " \n");
+		$textarea.animate({
+			scrollTop : $textarea.height()
+		}, 1000);
+	}
+
+	function close() {
+		ws.close();
+	}
+</script>
+</head>
+<body>
+	<div id="body">
+		<div id="menu">
+			<p class="welcome">
+				Welcome,<input id="username" value="anonymous" />
+				<select id="canal">
+					<option value="0" selected="selected">...</option>
+					<option value="1">Canal 1</option>
+					<option value="2">Canal 2</option>
+				</select>			
+			</p>
+			<div style="clear: both"></div>
+		</div>
+
+		<div id="chatbox">
+			<textarea id="messages" rows="16" cols="48" readonly="readonly"></textarea>
+		</div>
+
+		<form name="message" action="">
+			<input name="usermsg" type="text" id="message" size="63" /> 
+			<input type="button" name="submitmsg" value="Send..." onclick="sendMessage();" />
+			<input id="closebt" type="button" name="closeconn" value="Close"   onclick="close();" />
+		</form>
+	</div>
+</body>
+</html>
